@@ -32,22 +32,22 @@ public class Main {
         );
 
         // 1) position으로 분류
-        List<Player> players1 = filterPlayers(players, "midfielder", 11, true);
+        List<Player> midfielders = filterPlayers(players, new PositionPredicator(), "midfielder");
         // 2) speed 로 분류
-        List<Player> players2 = filterPlayers(players, "midfielder", 11, false);
+        List<Player> speeders = filterPlayers(players, new SpeedPredicator(), String.valueOf(11));
 
         int cnt = 0;
         // players1 출력
         System.out.println("======== players 1 ========== ");
-        for(Player player : players1){
+        for(Player player : midfielders){
             System.out.println(String.valueOf(++cnt) + ". " + player.getName() + ", position :: " + player.getPosition());
         }
         System.out.println();
 
         cnt = 0;
         System.out.println("======== players 2 ========== ");
-        for(Player player : players2){
-            System.out.println(String.valueOf(++cnt) + ". " + player.getName() + ", position :: " + player.getPosition());
+        for(Player player : speeders){
+            System.out.println(String.valueOf(++cnt) + ". " + player.getName() + ", speed :: " + player.getSpeed());
         }
     }
 
@@ -65,7 +65,7 @@ public class Main {
     // case 2
     // 입력된 speed 이하로 주파하는 선수를 뽑아내기
     public static List<Player> filterPlayersBySpeed(List<Player> players, int speed){
-        List<Player> result = new ArrayList<Player>();
+        List<Player> result = new ArrayList<>();
         for(Player player : players){
             if(player.getSpeed() <= speed){
                 result.add(player);
@@ -75,7 +75,7 @@ public class Main {
     }
 
     // case 3
-    public static List<Player> filterPlayers(List<Player> players, String position, int speed, boolean flag){
+    public static List<Player> filterPlayersByFlag(List<Player> players, String position, int speed, boolean flag){
         List<Player> result = new ArrayList<>();
         // true 일때 : position으로 분류
         // false 일때 : speed로 분류
@@ -84,6 +84,19 @@ public class Main {
                 result.add(player);
             }
         }
+        return result;
+    }
+
+    // case 4
+    private static List<Player> filterPlayers(List<Player> players, PlayerPredicator pre, String option){
+        List<Player> result = new ArrayList<>();
+
+        for(Player player : players){
+            if(pre.check(player, option)){
+                result.add(player);
+            }
+        }
+
         return result;
     }
 }
