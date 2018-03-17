@@ -2,7 +2,7 @@ package basic.java8.behaviorparameter;
 
 public class Player {
     private int         height = 0;         // 신장
-    private int         speed = 0;          // 달리기 속도
+    private int         speed = 0;          // 달리기 속도 (100m 달리기 속도)
     private String      primaryFoot = "";   // 주로 쓰는 발
     private String      position = "";      // 포지션
     private String      name = "";
