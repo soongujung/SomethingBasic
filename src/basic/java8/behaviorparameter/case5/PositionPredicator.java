@@ -1,9 +1,14 @@
 package basic.java8.behaviorparameter.case5;
 
-public class PositionPredicator implements PlayerPredicator {
-    @Override
-    public boolean check(Object obj, String opt) {
+import basic.java8.behaviorparameter.Player;
 
-        return false;
+public class PositionPredicator implements PlayerPredicator<Player> {
+    @Override
+    public boolean check(Player player, String opt) {
+        boolean result = false;
+        if(player.getPosition().equals(opt)){
+            result = true;
+        }
+        return result;
     }
 }

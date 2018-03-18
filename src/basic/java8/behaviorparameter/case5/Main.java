@@ -28,9 +28,19 @@ public class Main {
             }
         }, "midfielder");
 
+        // case 1 : 익명 클래스를 이용해 구현한 방식 (람다로 바꿔쓸수 있다.)
         int cnt = 0;
         System.out.println("======== players 1 ========== ");
         for(Player player : filteredPlayers){
+            System.out.println(String.valueOf(++cnt) + ". " + player.getName() + ", position :: " + player.getPosition());
+        }
+
+        // case 2 : generic interface를 구현한 클래스를 사용하는 방식
+        System.out.println();
+        List<Player> filteredPlayers2 = filterPlayers(players, new PositionPredicator(),"midfielder");
+        cnt = 0;
+        System.out.println("======== players 2 ========== ");
+        for(Player player : filteredPlayers2){
             System.out.println(String.valueOf(++cnt) + ". " + player.getName() + ", position :: " + player.getPosition());
         }
 
