@@ -54,10 +54,21 @@ public enum DeviceType {
 
     private String deviceTypeName;
     private int deviceTypeCode;
+    private static Map<Integer, DeviceType> typeMap = new HashMap<>();
 
     DeviceType(int deviceTypeCode, String deviceTypeName){
         this.deviceTypeCode = deviceTypeCode;
         this.deviceTypeName = deviceTypeName;
+    }
+
+    static{
+        for(DeviceType deviceType : DeviceType.values()){
+            typeMap.put(deviceType.getDeviceTypeCode(), deviceType);
+        }
+    }
+
+    public static DeviceType valueOf(int deviceTypeCd){
+        return (DeviceType)typeMap.get(deviceTypeCd);
     }
 
     public String getDeviceTypeName(){
