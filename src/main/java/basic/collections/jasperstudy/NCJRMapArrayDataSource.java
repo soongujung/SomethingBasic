@@ -1,6 +1,7 @@
 package basic.collections.jasperstudy;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 import net.sf.jasperreports.engine.JRException;
@@ -8,36 +9,155 @@ import net.sf.jasperreports.engine.JRField;
 import net.sf.jasperreports.engine.JRRewindableDataSource;
 import net.sf.jasperreports.engine.data.JRMapArrayDataSource;
 
-public class NCJRMapArrayDataSource implements JRRewindableDataSource{
+public class NCJRMapArrayDataSource implements JRRewindableDataSource {
+
     private Object[] records;
     private int index = -1;
+
+    /**
+     *
+     * getData()를 오버로딩한다고 해결되는게 아니었다.
+     * getFieldValue, moveFirst를 해결해야 한다....
+     * getData(String)내부에서도 자료를 수정하는 작업이 필요하다.
+     * Map<?,?> 등의 자료를 필요에 따라 멤버필드로 선언하자.
+     *
+     * */
+    private String indicNM = "";
+    private String deviceName = "";
+    private Map<String, Object> dataMap = null;
+    private Map<String, Integer> indexMap = null;
 
     public NCJRMapArrayDataSource(Object[] array)
     {
         records = array;
+        dataMap = new HashMap<>();
+        indexMap = new HashMap<>();
+    }
+
+    public NCJRMapArrayDataSource(Object[] array, String deviceName){
+        records = array;
+        dataMap = new HashMap<>();
+        indexMap = new HashMap<>();
+        this.deviceName = deviceName;
+
+        int startIndex = 0;
+        int endIndex = 0;
+        boolean find = false;
+
+        if(deviceName != null && !deviceName.equals("")){
+            String currIndicNM = "";
+            String nextIndicNM = "";
+
+            for(int i=0; i<records.length; i++){
+                Map<String,?> currentRecord = (Map<String, ?>)records[i];
+                currIndicNM = currentRecord.get("INDIC_NM").toString();
+                if(i<records.length-1){
+                    nextIndicNM = ((Map<String,?>)records[i+1]).get("INDIC_NM").toString();
+                    if(!nextIndicNM.equalsIgnoreCase(currIndicNM)){
+                        find = true;
+                        endIndex = i+1;
+                        dataMap.put(currIndicNM, Arrays.copyOfRange(records, startIndex, endIndex));
+                        startIndex = endIndex;
+                    }
+                }
+                else{ // 가장 마지막 요소이고, 이전 인덱스와 값이 다른 경우는 insert
+                    String prevIndicNM = ((Map<String,?>)records[i-1]).get("INDIC_NM").toString();
+                    if(!currIndicNM.equalsIgnoreCase(prevIndicNM)){
+                        endIndex = i+1;
+                        dataMap.put(currIndicNM, Arrays.copyOfRange(records, i, endIndex));
+                    }
+                }
+            }
+        }
+//		if(indicNM!=null && !indicNM.equals("") &&!dataMap.containsKey(indicNM)){
+//			indexMap.put(indicNM, -1);
+//			for(int i=0; i<records.length; i++){
+//
+//				Map<String, ?> currentRecord = (Map<String, ?>)records[i];
+//
+//				if ( find==false && currentRecord.get("INDIC_NM").toString().equals(indicNM) ){
+//					startIndex = i;
+//					endIndex = startIndex;
+//					find = true;
+//				}
+//				if ( find ){
+//					if(!currentRecord.get("INDIC_NM").toString().equals(indicNM)){
+//						endIndex = i;
+//						find = false;
+//						break;
+//					}
+//				}
+//			}
+//			dataMap.put(indicNM, Arrays.copyOfRange(records, startIndex, endIndex)); // dataMap 값 찍어보기
+//		}
+    }
+
+    public NCJRMapArrayDataSource(Object [] array, String deviceName, String indicNM){
+
     }
 
     @Override
     public boolean next() throws JRException {
-        index++;
+        if(!indicNM.equals("")&&indicNM!=null){
+            // TODO
+            Object[] objArr = (Object [])dataMap.get(indicNM);
 
-        if (records != null)
-        {
-            return (index < records.length);
+            // 각 지표마다의 index 관리 어떻게 ?
+            int indicIndex = indexMap.get(indicNM);
+            indicIndex++;
+            indexMap.put(indicNM, indicIndex);
+
+            if(objArr != null){
+                return (indicIndex < objArr.length);
+            }
+            return false;
         }
+//        else if(!deviceName.equals("")&&deviceName!=null){
+//            Object[] objArr = (Object [])dataMap.get(indicNM);
+//
+//            //////////////////////////////////////
+//            int indicIndex = indexMap.get(indicNM);
+//            indicIndex++;
+//            //////////////////////////////////////
+//
+//            indexMap.put(indicNM, indicIndex);
+//
+//            if(objArr != null){
+//                return (indicIndex < objArr.length);
+//            }
+//            return false;
+//        }
+        else{
+            index++;
 
-        return false;
+            if (records != null)
+            {
+                return (index < records.length);
+            }
+            return false;
+        }
     }
 
     @Override
     public Object getFieldValue(JRField field) throws JRException {
         Object value = null;
 
-        Map<String,?> currentRecord = (Map<String,?>)records[index];
+        if(!indicNM.equals("") || indicNM != null ){
+//			Map<String,?> currentRecord = (Map<String,?>)dataMap.get(indicNM);
+            Object[] objArr = (Object[])dataMap.get(indicNM);
+            Map<String,?> currentRecord = (Map<String,?>)objArr[indexMap.get(indicNM)];
 
-        if (currentRecord != null)
-        {
-            value = currentRecord.get(field.getName());
+            if (currentRecord != null){
+                value = currentRecord.get(field.getName());
+            }
+        }
+        else{
+            Map<String,?> currentRecord = (Map<String,?>)records[index];
+
+            if (currentRecord != null)
+            {
+                value = currentRecord.get(field.getName());
+            }
         }
 
         return value;
@@ -45,7 +165,12 @@ public class NCJRMapArrayDataSource implements JRRewindableDataSource{
 
     @Override
     public void moveFirst() throws JRException {
-        this.index = -1;
+        if(!indicNM.equals("") || indicNM != null ){
+            this.indexMap.put(indicNM, -1);
+        }
+        else{
+            this.index = -1;
+        }
     }
 
     /**
@@ -74,34 +199,33 @@ public class NCJRMapArrayDataSource implements JRRewindableDataSource{
      * 		MEMORY(1), 	MEMORY(2), ... 	,MEMORY(n)
      */
     public Object[] getData(String indicNM){
-
-//		int nextIndicIndex = 0;
         int startIndex = 0;
         int endIndex = 0;
         boolean find = false;
+        this.indicNM = indicNM;
 
-        for(int i=0; i<records.length; i++){
+        if(indicNM!=null && !indicNM.equals("") &&!dataMap.containsKey(indicNM)){
+            indexMap.put(indicNM, -1);
+            for(int i=0; i<records.length; i++){
 
-            Map<String, ?> currentRecord = (Map<String, ?>)records[i];
+                Map<String, ?> currentRecord = (Map<String, ?>)records[i];
 
-            if ( find==false && currentRecord.get("INDIC_NM").toString().equals(indicNM) ){
-                startIndex = i;
-                endIndex = startIndex;
-                find = true;
-            }
-            if ( find ){
-                if(!currentRecord.get("INDIC_NM").toString().equals(indicNM)){
-//					nextIndicIndex = i;
-                    endIndex = i;
-                    find = false;
-                    break;
+                if ( find==false && currentRecord.get("INDIC_NM").toString().equals(indicNM) ){
+                    startIndex = i;
+                    endIndex = startIndex;
+                    find = true;
                 }
-//				endIndex++;
+                if ( find ){
+                    if(!currentRecord.get("INDIC_NM").toString().equals(indicNM)){
+                        endIndex = i;
+                        find = false;
+                        break;
+                    }
+                }
             }
+            dataMap.put(indicNM, Arrays.copyOfRange(records, startIndex, endIndex)); // dataMap 값 찍어보기
         }
-
-        return Arrays.copyOfRange(records, startIndex, endIndex);
-        // https://docs.oracle.com/javase/7/docs/api/java/util/Arrays.html
+        return records;
     }
 
     /**
@@ -125,4 +249,10 @@ public class NCJRMapArrayDataSource implements JRRewindableDataSource{
     {
         return new NCJRMapArrayDataSource(records);
     }
+
+    public NCJRMapArrayDataSource cloneDataSource(String indicNM){
+        Object[] resultArr = (Object [])dataMap.get(indicNM);
+        return new NCJRMapArrayDataSource(resultArr);
+    }
+
 }
