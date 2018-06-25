@@ -2,6 +2,7 @@ package basic.collections.groupby;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -40,7 +41,16 @@ public class GroupByClient {
 		studentList.add(gc.newStudent("Boy3", 82, "사회"));
 		Stream<Student> streamList = studentList.stream();
 		//streamList.collect(Collectors.groupingBy(p -> p.getName(), mapping((Student s)->s.name, toList())));
+		Object obj = studentList.stream().collect(Collectors.groupingBy(Student::getDept));
+		System.out.println(obj.getClass().getName());
+
+		Map<String, List<Student>> result = studentList.stream().collect(Collectors.groupingBy(Student::getDept));
+		System.out.println(result);
+		for(String key :result.keySet()){
+			System.out.println(key + " : " + result.get(key).get(1).getName());
+		}
 	}
+
 	public Student newStudent(String name, int score, String dept){
 		Student s = new Student(name, score, dept);
 		return s;
